@@ -1,31 +1,43 @@
 import streamlit as st
 import requests
-import urllib.parse
+from bs4 import BeautifulSoup
+import json
 
-
-def get_car_prices(vin):
-    google_search_queries = [
-        'site:cars.com ' + vin,
-        'site:cargurus.com ' + vin,
-        'site:autotrader.com ' + vin,
-        'site:capitalone.com ' + vin
+# Function to scrape car data for a given VIN
+def scrape_car_data(vin):
+    sites = [
+        ("cars.com", f"https://www.cars.com/shopping/results/?stock_type=all&vin={vin}"),
+        ("cargurus.com", f"https://www.cargurus.com/Cars/link/{vin}"),
+        ("autotrader.com", f"https://www.autotrader.com/cars-for-sale/vehicledetails/{vin}"),
+        ("capitalone.com", f"https://www.capitalone.com/cars/{vin}")
     ]
-    prices = []  # To store prices found from each site
-    for query in google_search_queries:
-        search_url = f'https://www.google.com/search?q={urllib.parse.quote(query)}'
-        # Make a call to this URL, but note fetching data from Google search might require scraping, which may have CORS issues.
-        st.write(f"Searching for VIN: {vin} on: {search_url}")
-        # Here, implement your logic to scrape and fetch prices (not possible directly with requests)
-        # Hypothetical example:  prices += scrape_google_search_results(search_url)
-    return prices
 
+    results = []
 
-st.title("Car Price Comparison")
-vin_input = st.text_input("Enter VIN:")
+    for site_name, url in sites:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        # Example logic to extract price, you will need to adjust based on actual site structure
+        price = soup.find('span', {'class': 'price'})
+        price_value = price.text.strip() if price else 'Price not found'
+
+        results.append({
+            'site': site_name,
+            'price': price_value
+        })
+
+    return results
+
+# Streamlit App
+st.title("Car Price Comparison by VIN")
+vin_input = st.text_input("Enter VIN number:")
+
 if vin_input:
-    prices = get_car_prices(vin_input)
-    if prices:
-        st.write("Prices found:", prices)
-    else:
-        st.write("No prices found.")
-    st.write("Note: Actual scraping logic needs to be implemented since it's not feasible to do this directly from this Streamlit app.")
+    with st.spinner("Fetching data..."):
+        car_prices = scrape_car_data(vin_input)
+        st.write("Price Comparison Results:")
+        for car in car_prices:
+            st.write(f"{car['site']}: {car['price']}")
