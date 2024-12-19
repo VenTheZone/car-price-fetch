@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
-import json
 
 # Function to scrape car data for a given VIN
 def scrape_car_data(vin):
@@ -18,11 +17,16 @@ def scrape_car_data(vin):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
         }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        # Example logic to extract price, you will need to adjust based on actual site structure
-        price = soup.find('span', {'class': 'price'})
-        price_value = price.text.strip() if price else 'Price not found'
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()  # Raises an HTTPError for bad responses
+            soup = BeautifulSoup(response.content, 'html.parser')
+            price = soup.find('span', {'class': 'price'})
+            price_value = price.get_text(strip=True) if price else 'Price not found'
+        except requests.exceptions.RequestException as e:
+            price_value = f'Error retrieving data from {site_name}: {e}'
+        except Exception as e:
+            price_value = f'Error parsing data from {site_name}: {e}'
 
         results.append({
             'site': site_name,
