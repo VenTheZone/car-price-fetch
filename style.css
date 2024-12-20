@@ -1,0 +1,116 @@
+/* Cyberpunk 2077 Theme for Streamlit */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+
+.stApp {
+    background: linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.stTextInput > div > div > input {
+    background-color: #1a1a1a;
+    color: #00ff9f;
+    border: 2px solid #f0ff1c;
+    border-radius: 5px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, #f0ff1c 0%, #00ff9f 100%);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #f0ff1c;
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    color: #f0ff1c;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: glitch 2s infinite;
+}
+
+.stProgress > div > div > div {
+    background-color: #00ff9f;
+}
+
+.stSuccess {
+    background-color: rgba(0, 255, 159, 0.1);
+    border: 1px solid #00ff9f;
+    color: #00ff9f;
+}
+
+.stWarning {
+    background-color: rgba(240, 255, 28, 0.1);
+    border: 1px solid #f0ff1c;
+    color: #f0ff1c;
+}
+
+.stError {
+    background-color: rgba(255, 0, 80, 0.1);
+    border: 1px solid #ff0050;
+    color: #ff0050;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #00ff9f;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #f0ff1c;
+}
+
+.element-container:has(div.stMarkdown) {
+    background: rgba(26, 26, 26, 0.7);
+    border: 1px solid #00ff9f;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 10px 0;
+    backdrop-filter: blur(5px);
+}
+
+a {
+    color: #f0ff1c;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #00ff9f;
+    text-shadow: 0 0 10px #00ff9f;
+}
+
+@keyframes neon-pulse {
+    0% {
+        box-shadow: 0 0 5px #00ff9f;
+    }
+    50% {
+        box-shadow: 0 0 20px #00ff9f;
+    }
+    100% {
+        box-shadow: 0 0 5px #00ff9f;
+    }
+}
+
+.stProgress > div > div > div {
+    animation: neon-pulse 2s infinite;
+}
+    
