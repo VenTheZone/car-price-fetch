@@ -46,4 +46,4 @@ streamlit run main.py
 - price_extractor.py: Web scraping and price extraction
 - requirements.txt: Project dependencies
 - README.md: Project documentation
-    
+   
