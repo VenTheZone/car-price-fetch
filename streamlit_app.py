@@ -1,42 +1,55 @@
-import requests
-from bs4 import BeautifulSoup
 import streamlit as st
-import re
+from search_engines import search_brave, search_duckduckgo
+from price_extractor import process_results
+import concurrent.futures
 
-def is_valid_vin(vin):
-    return bool(re.match(r'^[A-HJ-NPR-Z0-9]{17}$', vin))
+def main():
+    st.title("Multi-Engine VIN Price Searcher")
+    st.write("Enter a VIN number to search across multiple automotive websites")
+    
+    vin_input = st.text_input("VIN Number:", "")
+    
+    if st.button("Search"):
+        if vin_input:
+            with st.spinner("Searching..."):
+                # Create progress bars
+                brave_progress = st.progress(0)
+                ddg_progress = st.progress(0)
+                
+                # Search using both engines
+                brave_results = search_brave(vin_input)
+                brave_progress.progress(100)
+                
+                ddg_results = search_duckduckgo(vin_input)
+                ddg_progress.progress(100)
+                
+                # Combine and process results
+                all_results = list(set(brave_results + ddg_results))  # Remove duplicates
+                
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    processed_results = list(executor.map(
+                        lambda x: process_results([x], vin_input),
+                        all_results
+                    ))
+                
+                # Flatten results
+                processed_results = [item for sublist in processed_results for item in sublist]
+                
+                # Display results
+                if processed_results:
+                    st.success(f"Found {len(processed_results)} results containing VIN: {vin_input}")
+                    
+                    for idx, result in enumerate(processed_results, 1):
+                        st.write(f"\n--- Result {idx} ---")
+                        st.write(f"Title: {result['title']}")
+                        st.write(f"Price: {result['price']}")
+                        st.write(f"URL: {result['url']}")
+                        st.markdown("---")
+                else:
+                    st.warning("No results found for this VIN number.")
+        else:
+            st.error("Please enter a VIN number")
 
-st.title('VIN Price Scraper')
-vin_input = st.text_input('Enter VIN:')
-
-if vin_input:
-    if is_valid_vin(vin_input):
-        st.write('Fetching results...')
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-        query = f'{vin_input} site:cars.com OR site:cargurus.com OR site:autotrader.com OR site:capitalone.com/cars/'
-        search_url = f'https://duckduckgo.com/html/?q={query}'
-
-        try:
-            response = requests.get(search_url, headers=headers)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            results = []
-            for link in soup.find_all('a', class_='result__a'):
-                href = link.get('href')
-                title = link.get_text()
-                results.append({'title': title, 'url': href})
-
-            if results:
-                st.write('### Results')
-                for result in results:
-                    st.write(f"[{result['title']}]({result['url']})")
-            else:
-                st.write('No results found.')
-
-        except requests.exceptions.RequestException as e:
-            st.error(f'An error occurred: {e}')
-    else:
-        st.error('Invalid VIN. Please enter a 17-character VIN containing only letters and numbers.')
+if __name__ == "__main__":
+    main()
+    
