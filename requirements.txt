@@ -2,3 +2,5 @@ streamlit
 requests
 beautifulsoup
 pandas
+lxml
+    
