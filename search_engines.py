@@ -1,46 +1,52 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 import streamlit as st
-from bs4 import BeautifulSoup
 
-def search_brave(vin):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.1312.60 Safari/537.17'
-    }
+def setup_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox") 
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    query = f'site:capitalone.com OR site:autotrader.com OR site:cargurus.com OR site:cars.com "{vin}" "price"'
-    brave_url = f"https://search.brave.com/api/search?q={query}&source=web"
-
+def search_perplexity(vin):
+    driver = setup_driver()
+    all_results = []
+    
     try:
-        response = requests.get(brave_url, headers=headers)
-        if response.status_code == 200:
-            results = response.json()
-            return [(item['url'], item['title']) for item in results.get('results', [])]
+        search_query = f"""Create an Excel sheet that lists the price of the vehicle identified by {vin} from the following websites:
+
+        site:capitalone.com
+        site:autotrader.com
+        site:cargurus.com
+        site:cars.com
+
+        The sheet should include:
+        1. Website name
+        2. Price
+        3. Weblink to the listing"""
+
+        url = f"https://www.perplexity.ai/?q={search_query}"
+        driver.get(url)
+        time.sleep(5)
+
+        results = driver.find_elements(By.CSS_SELECTOR, "a")
+        for result in results[:5]:
+            title = result.text
+            link = result.get_attribute("href")
+            if link and vin.lower() in link.lower():
+                all_results.append((link, title))
+
     except Exception as e:
-        st.error(f"Brave Search Error: {str(e)}")
-    return []
-
-def search_duckduckgo(vin):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:84.0) Gecko/20100101 Firefox/84.0",
-    }
-
-    query = f'site:capitalone.com OR site:autotrader.com OR site:cargurus.com OR site:cars.com "{vin}" "price"'
-
-    try:
-        # Use the HTML endpoint instead of the API
-        response = requests.get(f'https://duckduckgo.com/html/?q={query}', headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            results = soup.find_all("a", class_="result__url", href=True)
-
-            # Extract URLs and titles from the results
-            search_results = []
-            for link in results:
-                title = link.get_text() or "No Title"
-                url = link['href']
-                search_results.append((url, title))
-
-            return search_results
-    except Exception as e:
-        st.error(f"DuckDuckGo Search Error: {str(e)}")
-    return []
+        st.error(f"Perplexity Search Error: {str(e)}")
+    
+    finally:
+        driver.quit()
+    
+    return all_results
+    
