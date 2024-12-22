@@ -113,4 +113,61 @@ a:hover {
 .stProgress > div > div > div {
     animation: neon-pulse 2s infinite;
 }
+
+.stDownloadButton > button {
+    background: linear-gradient(90deg, #f0ff1c 0%, #00ff9f 100%);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.stDownloadButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #f0ff1c;
+}
+
+.dataframe {
+    background: rgba(26, 26, 26, 0.7);
+    border: 1px solid #00ff9f !important;
+    color: #00ff9f !important;
+}
+
+.dataframe th {
+    background: rgba(240, 255, 28, 0.1) !important;
+    color: #f0ff1c !important;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.price-container {
+    background: rgba(0, 255, 159, 0.1);
+    border: 2px solid #00ff9f;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    font-family: 'Orbitron', sans-serif;
+    animation: neon-border 2s infinite;
+}
+
+@keyframes neon-border {
+    0% {
+        box-shadow: 0 0 5px #00ff9f;
+    }
+    50% {
+        box-shadow: 0 0 20px #00ff9f, 0 0 30px #00ff9f;
+    }
+    100% {
+        box-shadow: 0 0 5px #00ff9f;
+    }
+}
+
+.price-value {
+    font-size: 1.5em;
+    color: #f0ff1c;
+    text-shadow: 0 0 10px #f0ff1c;
+}
     
