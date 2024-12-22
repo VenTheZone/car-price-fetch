@@ -12,15 +12,44 @@ def extract_price(url):
         
         # Common price patterns
         price_patterns = [
-            r'\$[\d,]+(?:\.?\d{2})?',
-            r'(?:Price|PRICE|price):\s*\$[\d,]+(?:\.?\d{2})?',
-            r'[\d,]+(?:\.?\d{2})?\s*USD'
+            r'\$[\d,]+(?:\.?\d{2})?',  # Basic price format $XX,XXX.XX
+            r'(?:Price|PRICE|price|Sale Price|SALE PRICE|ListPrice):\s*\$[\d,]+(?:\.?\d{2})?',
+            r'[\d,]+(?:\.?\d{2})?\s*USD',
+            r'salesPrice["\']:\s*["\']?\$?([\d,]+(?:\.?\d{2})?)["\']?',
+            r'price["\']:\s*["\']?\$?([\d,]+(?:\.?\d{2})?)["\']?',
+            r'ListPrice["\']:\s*["\']?\$?([\d,]+(?:\.?\d{2})?)["\']?'
         ]
         
+        # Check structured data first
+        schema_data = soup.find_all('script', type='application/ld+json')
+        for schema in schema_data:
+            try:
+                if 'price' in schema.string.lower():
+                    for pattern in price_patterns:
+                        matches = re.findall(pattern, schema.string)
+                        if matches:
+                            return f"${matches[0]}"
+            except:
+                continue
+
+        # Then check regular content
         for pattern in price_patterns:
             prices = re.findall(pattern, response.text)
             if prices:
-                return prices[0]
+                # Clean the price string
+                price = prices[0]
+                if not price.startswith('$'):
+                    price = f"${price}"
+                return price
+        
+        # Try finding specific price elements
+        price_classes = ['price', 'Price', 'sale-price', 'listing-price', 'vehicle-price']
+        for class_name in price_classes:
+            price_elem = soup.find(class_=lambda x: x and class_name in x)
+            if price_elem:
+                price_text = price_elem.get_text().strip()
+                if '$' in price_text:
+                    return price_text
         
         return "Price not found"
     except Exception as e:
@@ -37,4 +66,4 @@ def process_results(search_results, vin):
                 'price': price
             })
     return processed_results
-   
+    
